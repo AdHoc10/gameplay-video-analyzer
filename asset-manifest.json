@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.css": "/gameplay-video-analyzer/static/css/main.77c36b66.css",
+    "main.js": "/gameplay-video-analyzer/static/js/main.276d9bba.js",
+    "index.html": "/gameplay-video-analyzer/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.77c36b66.css",
+    "static/js/main.276d9bba.js"
+  ]
+}
