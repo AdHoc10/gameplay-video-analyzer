@@ -1,70 +1,144 @@
-# Getting Started with Create React App
+# Gameplay Video Analyzer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Annotate time ranges in game film, tag the action (SPIN, JUKE, etc.), and run analysis by counting defenders “in front” of the ball carrier. Outputs feed a simple graphs view.
 
-## Available Scripts
+## Stack
 
-In the project directory, you can run:
+* **React** + **video.js** (YouTube + MP4)
+* **Custom timeline** for range selection
+* **CSS** in `src/styles.css` (no inline styles)
+* **(Model)** currently a TFLite file in `public/models/` — see “Model status” below
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## File structure
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+GAMEPLAY-VIDEO-ANALYZER/
+├─ public/
+│  ├─ index.html
+│  └─ models/
+│     └─ model.tflite            # replace here if you have a new model
+├─ src/
+│  ├─ components/
+│  │  ├─ VideoPlayer.jsx         # playback, range select, annotate modal, Analyze button
+│  │  ├─ AnnotationTimeline.jsx  # editable table of annotations (start/end/tag/modifier/down)
+│  │  ├─ GraphsPanel.jsx         # shows counts returned by analysis (per tag)
+│  │  └─ Loader.jsx              # small spinner
+│  ├─ App.jsx                    # wires everything together, header pills, passes modelPath
+│  ├─ index.js                   # React entry
+│  └─ styles.css                 # all app styling + variables
+├─ patches/                      # (optional) patch files for dependencies
+├─ package.json                  # scripts (start/build/deploy) + deps
+├─ package-lock.json
+├─ .gitignore
+└─ README.md
+```
 
-### `npm test`
+### What edits go where
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* **Video controls / range selection / hotkeys** → `VideoPlayer.jsx`
+* **Annotation modal fields (tag, modifier, down)** → `VideoPlayer.jsx`
+* **Annotation table columns / CSV export** → `AnnotationTimeline.jsx`
+* **Graphs rendering** → `GraphsPanel.jsx`
+* **Styling** (buttons, modal, grid, etc.) → `styles.css`
+* **Model path** passed to player → `App.jsx` (`<VideoPlayer modelPath="/models/…">`)
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Local setup
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+# 1) Clone
+git clone <REPO_URL>
+cd gameplay-video-analyzer
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# 2) Install
+npm install
 
-### `npm run eject`
+# 3) Run dev server (http://localhost:3000)
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## How to use (quick)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. **Load a video** (YouTube URL or MP4).
+2. **Make a selection**:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   * Hold **Shift** and drag on the scrub bar **or**
+   * Use **[** to set Start, **]** to set End.
+   * **,** frame back · **.** frame forward · **Space** play/pause
+   * When you press **]**, playback auto-pauses at that moment.
+3. **Annotate**: click **Annotate** → choose **Tag**, **Modifier**, **Down** → **Add**.
+4. **Load schema CSV (optional)**: matches columns `TagName,StartTime,EndTime,Modifiers`.
+5. **Analyze**: press **Analyze** to compute defender counts per tag (see model note below).
+6. **View results**: open **Graphs** to see counts arrays grouped by tag.
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Deploy (GitHub Pages)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+We publish the production build to the `gh-pages` branch using the `gh-pages` package. You **do not** switch branches manually.
 
-### Code Splitting
+```bash
+# while on main
+npm run deploy
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+This will:
 
-### Analyzing the Bundle Size
+1. build the app,
+2. push the build artifacts to `gh-pages`,
+3. leave you on `main`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### One-time check
 
-### Making a Progressive Web App
+In `package.json`, ensure the homepage is set:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```json
+"homepage": "https://<username>.github.io/<repo-name>/"
+```
 
-### Advanced Configuration
+GitHub → **Settings → Pages** → Source = `gh-pages` branch.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## Branches and permissions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+* **main**: working development branch
+* **gh-pages**: generated by `npm run deploy` (don’t touch manually)
 
-### `npm run build` fails to minify
+If a teammate has **Write** access and `main` isn’t protected, they can:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+git push origin main      # update code only
+npm run deploy            # publish the site
+```
+
+Pushing to `main` **does not** update the live site. `npm run deploy` does.
+
+---
+
+## Keyboard shortcuts
+
+* **Space**: play/pause
+* **,**: frame back
+* **.**: frame forward
+* **[**: set Start
+* **]**: set End (also pauses playback)
+
+---
+
+## Common warnings
+
+* **Source map warning from mediapipe `vision_bundle_mjs.js.map`**
+  Harmless in dev. It’s a missing map in the npm package. Ignore it.
+
+* **TFJS “kernel already registered” logs**
+  Happens if the runtime is injected twice during hot reload. Harmless after a full refresh.
+
+---
+
+Questions? Look at `VideoPlayer.jsx` first—it’s the heart of the app.
