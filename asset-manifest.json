@@ -1,11 +1,11 @@
 {
   "files": {
-    "main.css": "/gameplay-video-analyzer/static/css/main.d8dd1408.css",
-    "main.js": "/gameplay-video-analyzer/static/js/main.a43e4edf.js",
+    "main.css": "/gameplay-video-analyzer/static/css/main.e61145a9.css",
+    "main.js": "/gameplay-video-analyzer/static/js/main.dc10f3f9.js",
     "index.html": "/gameplay-video-analyzer/index.html"
   },
   "entrypoints": [
-    "static/css/main.d8dd1408.css",
-    "static/js/main.a43e4edf.js"
+    "static/css/main.e61145a9.css",
+    "static/js/main.dc10f3f9.js"
   ]
 }
