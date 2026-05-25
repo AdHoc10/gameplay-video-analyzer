@@ -3,7 +3,7 @@ from sklearn.mixture import GaussianMixture
 import cv2
 import numpy as np
 
-from utils.yolo_detection import ImageDetectionHelpers
+from utils.yolo_detection import ImageDetection
 
 import torch
 from torchvision.models.resnet import resnet50, ResNet50_Weights # 18, 34 other options
@@ -13,7 +13,7 @@ from torchvision.models.resnet import resnet50, ResNet50_Weights # 18, 34 other 
 class TeamRepresentationLearning:
 
     def __init__(self, huddle_frames, yolo_model_path):
-        self.yolo_detector = ImageDetectionHelpers(yolo_model_path)
+        self.yolo_detector = ImageDetection(yolo_model_path)
         self.huddle_frames = huddle_frames
 
         # Percents of the frame to shrink to focus more on the jerseys

@@ -11,16 +11,16 @@ from ultralytics import YOLO
 from config import *
 from utils.frames_process import FrameHandler
 from utils.tracking import Tracking
+from utils.tracking_refiner.refined_tracking import RefinedTracking
 from utils.probability_creation import SaveEventDataAndProbabilities
+from utils.geometry import iou  # re-exported for callers that imported it from here
 
-# ---------------- helpers -----------------------
-def iou(b1, b2):
-    xA, yA = max(b1[0], b2[0]), max(b1[1], b2[1])
-    xB, yB = min(b1[2], b2[2]), min(b1[3], b2[3])
-    inter = max(0, xB - xA) * max(0, yB - yA)
-    area1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
-    area2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
-    return inter / (area1 + area2 - inter + 1e-6)
+from utils.tracking_refiner import RefinedTracking
+from utils.observers import (
+    BallCarrierObserver, BirdsEyeHeatmapObserver,
+    BirdsEyeConfig, PerspectiveConfig,
+)
+
 
 def process_from_app(csv_name):
 
@@ -56,8 +56,24 @@ def process_from_app(csv_name):
         raise RuntimeError("Frame handler initialization failed before huddle mapping.")
 
     # Start tracking algo
-    tracker = Tracking(csv_name=csv_name, frame_handler=frame_handler)
+    tracker = RefinedTracking(csv_name, frame_handler)
+
+    # --- CALIBRATION CADENCE TOGGLE (edit this one line) ---
+    persp_cfg = PerspectiveConfig(mode="cached", cache_every_n_frames=5)
+    # persp_cfg = PerspectiveConfig(mode="every_frame")
+
+    # --- ORIENTATION TOGGLE (edit this one line) ---
+    birds_eye_cfg = BirdsEyeConfig(orientation="portrait")
+    # birds_eye_cfg = BirdsEyeConfig(orientation="landscape")
+
+    tracker.replace_heatmap_drawer(
+        BirdsEyeHeatmapObserver(tracker, birds_eye_cfg, persp_cfg)
+    )
+    tracker.register_observer(BallCarrierObserver(tracker))
     moves_2_defenderCount_dict, moves_2_timeSincePlayBegan, tracked_video_path, heatmap_video_path, tracked_timeline_map_path = tracker.track_in_each_play()
+
+    # tracker = Tracking(csv_name=csv_name, frame_handler=frame_handler)
+    # moves_2_defenderCount_dict, moves_2_timeSincePlayBegan, tracked_video_path, heatmap_video_path, tracked_timeline_map_path = tracker.track_in_each_play()
     del(tracker)
 
     print_line_to_fill_terminal()

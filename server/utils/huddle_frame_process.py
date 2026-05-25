@@ -1,20 +1,25 @@
+from typing import Dict, Optional, Tuple
+
 import cv2
-from .yolo_detection import ImageDetectionHelpers
-
 import numpy as np
-from typing import Dict
+
+from .yolo_detection import ImageDetection
 
 
-class HuddleFrameProcessor():
+class HuddleFrameProcessor:
 
     def __init__(self):
-        self.min_players_for_huddle = 9
+        self.min_players_for_huddle: int = 9
         # Setting luminance reference as the left and right regions of the central band (no overlay on them)
-        self.luminance_reference = None
+        self.luminance_reference: Optional[float] = None
         return
-    
+
     # Compute and display multiple brightness metrics on the provided frames.
-    def compute_metrics(self, frame, prev_frame_metrics=None) -> Dict[str, float]:
+    def compute_metrics(
+        self,
+        frame: np.ndarray,
+        prev_frame_metrics: Optional[Dict[str, float]] = None,
+    ) -> Tuple[Dict[str, float], Dict[str, float]]:
 
         # def roi(img, rx1, rx2, ry1, ry2):
         #     h, w = img.shape[:2]
@@ -79,7 +84,12 @@ class HuddleFrameProcessor():
         return cur_metrics, delta_metrics
     
     # Find a usable huddle frame from a cv2 capture variable (cv2 video seeker) 
-    def find_proper_huddle_frame(self, cap: cv2.VideoCapture, huddle_frame_num: int, detector: ImageDetectionHelpers):
+    def find_proper_huddle_frame(
+        self,
+        cap: cv2.VideoCapture,
+        huddle_frame_num: int,
+        detector: ImageDetection,
+    ) -> np.ndarray:
         cap.set(cv2.CAP_PROP_POS_FRAMES, huddle_frame_num)
         num_people = 0
         while num_people < self.min_players_for_huddle:

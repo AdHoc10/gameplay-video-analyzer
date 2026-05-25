@@ -1,17 +1,21 @@
-from ultralytics import YOLO
-import cv2
+from typing import List, Optional
 
-class ImageDetectionHelpers:
-    
-    def __init__(self, model_path):
-        self.yolo_model = YOLO(model_path)
-        self.bboxes = None
-        self.img_height = None
-        self.img_width = None
-        self.category_id = 0 # class = person
-    
+import cv2
+import numpy as np
+from ultralytics import YOLO
+
+
+class ImageDetection:
+
+    def __init__(self, model_path: str):
+        self.yolo_model: YOLO = YOLO(model_path)
+        self.bboxes: Optional[List[np.ndarray]] = None
+        self.img_height: Optional[int] = None
+        self.img_width:  Optional[int] = None
+        self.category_id: int = 0  # COCO class 0 = person
+
     # Function that returns bboxes of person/people in a frame
-    def frame_detection(self, img, CONF_TH=0.3):
+    def frame_detection(self, img: np.ndarray, CONF_TH: float = 0.3) -> List[np.ndarray]:
         '''
             Convert img to suitable color code before passing
         '''
@@ -35,7 +39,7 @@ class ImageDetectionHelpers:
         return confident_boxes
     
     
-    def detect_and_save_annotations(self, frame, save_dir, img_name): # Annotation file should have the same name as the img file
+    def detect_and_save_annotations(self, frame, save_dir: str, img_name: str) -> None:  # Annotation file should have the same name as the img file
         if type(frame) == 'str':
             frame = cv2.imread(frame)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

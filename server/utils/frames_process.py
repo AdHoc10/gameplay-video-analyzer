@@ -1,14 +1,25 @@
+from typing import Dict, List, Optional, Tuple
+
 import cv2
+import numpy as np
 from tqdm import tqdm
+
 from .csv_process import CSVVideoInfoProcessor
-from .yolo_detection import ImageDetectionHelpers
+from .yolo_detection import ImageDetection
 from .huddle_frame_process import HuddleFrameProcessor
 
 from utils.team_learning_and_detection import TeamRepresentationLearning
 
+
 class FrameHandler(CSVVideoInfoProcessor, HuddleFrameProcessor):
 
-    def __init__(self, move_annot_filepath, huddle_annot_filepath, VIDEOS_DIR, yolo_model_path=None):
+    def __init__(
+        self,
+        move_annot_filepath: str,
+        huddle_annot_filepath: str,
+        VIDEOS_DIR: str,
+        yolo_model_path: Optional[str] = None,
+    ):
         CSVVideoInfoProcessor.__init__(self, move_annot_filepath, huddle_annot_filepath, VIDEOS_DIR)
         if not self.video_exists_on_yt:
             print(f'Error downloading URL {self.video_url}')
@@ -31,7 +42,7 @@ class FrameHandler(CSVVideoInfoProcessor, HuddleFrameProcessor):
   
 
     # Function to convert time to frame number
-    def convert_timestamp_to_frames(self, timestamp, fps):
+    def convert_timestamp_to_frames(self, timestamp: str, fps: float) -> int:
         ''' 
             Converts a timestamp to frame number (time in seconds * fps).
             Args:
@@ -54,7 +65,10 @@ class FrameHandler(CSVVideoInfoProcessor, HuddleFrameProcessor):
     
 
     # Defining huddle_frame to move_frame dict: {huddle_frame_number: [(move_tag, move_frame_num, down_number), ...], ...}
-    def match_huddle_times_with_moves(self, fps=60):
+    def match_huddle_times_with_moves(
+        self,
+        fps: float = 60,
+    ) -> Dict[int, List[Tuple[str, int, Optional[int]]]]:
         ''' 
             Creates a dictionary that stores huddle times as dict keys and list of moves made in the corresponding play as dict values.
             Considers only ATTACKING MOVES for now 
@@ -117,10 +131,10 @@ class FrameHandler(CSVVideoInfoProcessor, HuddleFrameProcessor):
 
     # Function to load huddle frames (Optionally load move frames)
     # Dict keys: start frames, Dict values: list of (action_tag, action_frame) in that play
-    def store_huddle_frames(self, model_path=None):
+    def store_huddle_frames(self, model_path: Optional[str] = None) -> Dict[int, np.ndarray]:
         
         # Load required detection model
-        detector = ImageDetectionHelpers(model_path)
+        detector = ImageDetection(model_path)
 
         # Open video
         cap = cv2.VideoCapture(self.video_path)

@@ -1,0 +1,24 @@
+# Core web / data
+flask
+flask-cors
+pandas
+scikit-learn
+tqdm
+
+# Vision / ML
+opencv-python
+numpy
+scipy
+ultralytics
+torch
+torchvision
+
+# Video download
+yt-dlp
+
+# OCR (used by perspective_shift; either backend works)
+paddleocr
+easyocr
+
+# Optional: tracking-refiner OSNet embedder. Falls back to ResNet-50 if absent.
+# torchreid
